@@ -64,6 +64,7 @@ def dirs_tree():
     tttmp=[]
    # print(nodes)
 
+    #主文件夹区分
     for item in nodes:
         if(item["name"][len(item["name"])-1].isdigit()):
           # print(item["name"])
@@ -71,8 +72,6 @@ def dirs_tree():
            #print(ttmp)
            tttmp.append(ttmp)
            ttmp={}
-
-
 
     #去重
     seen=set()
@@ -83,7 +82,7 @@ def dirs_tree():
             seen.add(t)
             Nodes.append(d)
 
-    # print(len(Nodes))
+    print(len(Nodes))
     print(Nodes)
 
     for root, dirs, files in os.walk((BASE_DIR + '/dir')):
@@ -132,6 +131,7 @@ def dirs_tree():
             finallt[result] = lt
         else:
             finallt[result] = list
+
 
 
     return jsonify(pathlink, finallt,Nodes,Level)
