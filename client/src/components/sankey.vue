@@ -59,14 +59,20 @@ export default {
     d3.json("http://127.0.0.1:5000/getMsg/", function(error, all_data) {
       //console.log(data);
       //set up graph in same style as original example but empty，与原始示例设置相同的图形，但空
-      console.log(all_data);
-      var graph = { "nodes": [], "links": [] };
-      graph.nodes = all_data['2']
+      //console.log(all_data);
+      var nodesColor=["#388712","#60DD49","#FCE639","#FFA91A","#FF3030"];   //绿到红
+
+      //色块等级说明
+
+
+
+
+      var graph = { "nodes": [], "links": []  };
+      graph.nodes = all_data['2'];
       graph.links = all_data['0'];
       var attackpath =all_data['1'];
-      //var data = all_data['0'];
+      //console.log(graph.nodes);
 
-      //console.log(graph);
       sankey
         .nodes(graph.nodes)
         .links(graph.links)
@@ -115,9 +121,6 @@ export default {
             this.parentNode.appendChild(this);
           })
          .on("drag", dragmove))
-
-
-
 
 
 
@@ -177,8 +180,8 @@ export default {
 
         .attr("in", "SourceGraphic");
 
-
-
+     // console.log(graph.nodes[0].name[graph.nodes[0].name.length-1])
+    // console.log(Math.max(d.sourceLinks.length,d.targetLinks.length));
       // 为节点添加矩形
       node.append("rect")
         .attr("height", function(d) {  return d.dy; })
@@ -186,7 +189,10 @@ export default {
         //.attr("rx", "9px") //圆角设置
         //.attr("ry", "9px")
         //.style("fill", "url(#" + linearGradient.attr("id") + ")") //添加线性渐变
-        .style("fill",function()  { return compute(Math.random()); })
+        //.style("fill",function()  { return compute(Math.random()); })
+        .style("fill",function (d) {
+          return nodesColor[d.name[d.name.length-1]-1];
+        })
        // .style("opacity",.7)
         //.style("stroke","#CDC9C9")      //描边颜色设置
         .style("stroke-width", "1.5px")
@@ -194,12 +200,13 @@ export default {
         .on("mouseover", function(d) {
           var name = d.name;
           var datapath = attackpath[name];
-          //console.log(data);
+         // console.log(datapath);
           for (var item in datapath) {
             var dom = d3.select("." + datapath[item]['0'] + "→" + datapath[item]['1']);
             dom.style("stroke-opacity", 1) //连线高亮设置
           }
         })
+
 
         .on("mouseout", function(d) {
           var name = d.name;
@@ -230,17 +237,18 @@ export default {
       //   .attr("text-anchor", "end")
       //   .attr("fill", "#fff");
 
-
+     // console.log(graph.nodes[0].name(0,graph.nodes[0].name.length));
      node.append("text")
-      .attr("x", 26)
-      .attr("y", function(d) { return d.dy / 2; })
+      .attr("x", function (d) { return d.dx})
+      .attr("y", function(d) { return d.dy*1.3; })
       .attr("dy", ".35em")
-      .attr("text-anchor", "start")
+      .attr("text-anchor", "middle")
       .attr("transform", null)
-      .text(function(d) { return d.name; })
-    .filter(function(d) { return d.x < width / 2; })
-      .attr("x",  sankey.nodeWidth()-10)   //左侧
-      .attr("text-anchor", "start")
+      .text(function(d) { return d.name.substr(0,d.name.length-1); })
+      .filter(function(d) { return d.x < width / 2; })
+      .attr("x",  sankey.nodeWidth())   //左侧
+      .attr("y", function (d) { return d.dy*1.3})
+      .attr("text-anchor", "middle")
       .attr("fill", "#fff");
 
       // //新建箭头
@@ -258,7 +266,6 @@ export default {
       //   .attr("d", arrow_path)
       //   .attr("fill", "#fff")
       //   .attr("opacity", 0.5);
-
 
       //添加链接
       var link = svg.append("g").selectAll(".link")
@@ -298,12 +305,13 @@ export default {
         }
       }
 
-
     });
 
   },
   methods: {
     sankey() {
+
+      //sankey插件
       d3.sankey = function() {
         var sankey = {},
           nodeWidth = 24,
