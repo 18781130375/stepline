@@ -61,10 +61,46 @@ export default {
       //set up graph in same style as original example but empty，与原始示例设置相同的图形，但空
       //console.log(all_data);
       var nodesColor=["#388712","#60DD49","#FCE639","#FFA91A","#FF3030"];   //绿到红
+      var nodetext=["威胁等级低","威胁等级较低","威胁等级中等","威胁等级较高","威胁等级高"];
 
       //色块等级说明
+        var colorsexplain=svg.append("g").selectAll(".explain")
+          .data(nodesColor)
+          .enter()
+          .append("g")
+          .attr("class","explain")
 
+      colorsexplain.append("rect")
+        .attr("x","70%")
+        .attr("y",function (d){
+          for (var i=0;i<nodesColor.length;i++)
+          if(nodesColor[i]==d)
+          {
+            return i*40
+          }
+        })
+        .attr("height",20)
+        .attr("width",20)
+        .style("fill",function (d) {return d})
+        .style("filter", "url(#drop-shadow)") //添加阴影
 
+      colorsexplain.append("text")
+        .data(nodetext)
+        .attr("x","72%")
+        .attr("y",function (d) {
+          for(var i=0;i<nodetext.length;i++)
+          {
+            if(nodetext[i]==d)
+            {
+              return i*43
+            }
+          }
+        })
+        .attr("dy", ".35em")
+        .attr("text-anchor", "start")
+         .text(function (d) { return d })
+        .attr("fill","#fff")
+        .style("filter", "url(#drop-shadow)");
 
 
       var graph = { "nodes": [], "links": []  };
@@ -79,27 +115,27 @@ export default {
         .layout(32); //layout中的参数表示桑基布局用来优化流布局的时间。
 
      //拖拽和点击的区分
-      function distinguish() {
-        var flag=0;
-
-       var element=xxxx;
-
-      element.addEventListener("mousedown",function () {
-        flag=0;
-      },false);
-      element.addEventListener("mousemove", function(){
-       flag = 1;
-      }, false);
-      element.addEventListener("mouseup", function(){
-        if(flag === 0){
-          alert("click");
-        }
-        else if(flag === 1){
-          alert("drag");
-        }
-      }, false);
-
-      }
+     //  function distinguish() {
+     //    var flag=0;
+     //
+     //   var element=xxxx;
+     //
+     //  element.addEventListener("mousedown",function () {
+     //    flag=0;
+     //  },false);
+     //  element.addEventListener("mousemove", function(){
+     //   flag = 1;
+     //  }, false);
+     //  element.addEventListener("mouseup", function(){
+     //    if(flag === 0){
+     //      alert("click");
+     //    }
+     //    else if(flag === 1){
+     //      alert("drag");
+     //    }
+     //  }, false);
+     //
+     //  }
 
 
       // 添加节点
@@ -239,16 +275,16 @@ export default {
 
      // console.log(graph.nodes[0].name(0,graph.nodes[0].name.length));
      node.append("text")
-      .attr("x", function (d) { return d.dx})
+      .attr("x", function (d) { return d.dx/1.5})
       .attr("y", function(d) { return d.dy*1.3; })
       .attr("dy", ".35em")
-      .attr("text-anchor", "middle")
+      .attr("text-anchor", "end")
       .attr("transform", null)
       .text(function(d) { return d.name.substr(0,d.name.length-1); })
       .filter(function(d) { return d.x < width / 2; })
-      .attr("x",  sankey.nodeWidth())   //左侧
+      .attr("x",  function (){ return sankey.nodeWidth()/6 })   //左侧
       .attr("y", function (d) { return d.dy*1.3})
-      .attr("text-anchor", "middle")
+      .attr("text-anchor", "start")
       .attr("fill", "#fff");
 
       // //新建箭头

@@ -1,0 +1,104 @@
+<html>
+  <head>
+        <meta charset="utf-8">
+        <title>Pie</title>
+  </head>
+
+<style>
+ body{
+   background-color: #020D1F;
+ }
+
+</style>
+    <body>
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script>
+
+		var width = 200;
+		var height = 200;
+		var dataset1 = [87,13];
+    var margin = { top: 10, right: 10, bottom: 10, left: 10 };
+		var svg = d3.select("body").append("svg")
+								.attr("width",width+50)
+								.attr("height",height+50)
+                .attr("transform",
+                 "translate(" + margin.left + "," + margin.top + ")");
+
+		var pie = d3.layout.pie();
+
+		//内外半径设置
+		var outerRadius = width/2 ;
+		var innerRadius = width / 3;
+		var arc = d3.svg.arc()
+						.innerRadius(innerRadius)
+						.outerRadius(outerRadius);
+
+		//var color = d3.scale.category10();
+		var color = ["#fff","#add8e6"];
+		var defs = svg.append("defs");
+
+    var filter = defs.append("filter")
+        .attr("id", "drop-shadow")
+        .attr("width", "200%")
+        .attr("height", "200%");
+
+    filter.append("feGaussianBlur")
+        //  .attr("in", "SourceAlpha")
+        .attr("stdDeviation", 5)
+
+        .attr("result", "blur");
+
+      // translate output of Gaussian blur to the right and downwards with 2px
+      // store result in offsetBlur
+    filter.append("feOffset")
+        .attr("in", "blur")
+        .attr("dx", 0)
+        .attr("dy", 0)
+        .attr("result", "offsetBlur");
+
+    var feMerge = filter.append("feMerge");
+
+    feMerge.append("feMergeNode")
+
+        .attr("in", "offsetBlur")
+    feMerge.append("feMergeNode")
+
+        .attr("in", "SourceGraphic");
+
+		var arcs = svg.selectAll("g")
+					  .data(pie(dataset1))
+					  .enter()
+					  .append("g")
+					  .attr("transform","translate("+outerRadius+","+outerRadius+")");
+
+		arcs.append("path")
+			.attr("fill",function (d,i) {
+          return color[i]
+      })
+      .style("filter", "url(#drop-shadow)")
+			.attr("d",function(d){
+				return arc(d);
+			})
+      .attr("transform",
+                 "translate(" + margin.left + "," + margin.top + ")");
+
+		arcs.append("text")
+			.attr("transform",function(d){
+				return "translate(" + arc.centroid(d)+ ")";
+			})
+			.attr("text-anchor","start")
+			.text(function(d){
+				return d.value;
+			});
+
+
+
+		console.log(dataset1);
+		console.log(pie(dataset1));
+    console.log(color)
+
+
+        </script>
+
+    </body>
+</html>
