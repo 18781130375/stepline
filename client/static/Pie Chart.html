@@ -1,104 +1,224 @@
-<html>
-  <head>
-        <meta charset="utf-8">
-        <title>Pie</title>
-  </head>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>饼状图</title>
+    </head>
+    <style type="text/css">
 
-<style>
- body{
-   background-color: #020D1F;
- }
+      body {
+        background-color: #020D1F;
+      }
 
-</style>
+      button {
+        position: absolute;
+        margin: 10px;
+      }
+    </style>
     <body>
-		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-        <script>
+    <script src="../static/d3.v3.js"></script>
+    <script type="text/javascript">
 
-		var width = 200;
-		var height = 200;
-		var dataset1 = [87,13];
-    var margin = { top: 10, right: 10, bottom: 10, left: 10 };
-		var svg = d3.select("body").append("svg")
-								.attr("width",width+50)
-								.attr("height",height+50)
-                .attr("transform",
-                 "translate(" + margin.left + "," + margin.top + ")");
+          var width = 500 + 200;
+          var height = 700;
+          var dataset =[["attack", 30], ["information", 20]];
 
-		var pie = d3.layout.pie();
+          var outerRadius = 100; //外半径
+          var innerRadius = 65; //内半径，为0则中间没有空白
+          var arc = d3.svg.arc() //弧生成器
+            .innerRadius(innerRadius) //设置内半径
+            .outerRadius(outerRadius); //设置外半径
 
-		//内外半径设置
-		var outerRadius = width/2 ;
-		var innerRadius = width / 3;
-		var arc = d3.svg.arc()
-						.innerRadius(innerRadius)
-						.outerRadius(outerRadius);
+          var color = d3.scale.category20()
+          var nodescolor =  ["#388712","#60DD49","#FCE639","#FFA91A","#FF3030"] ;//构造20种颜色的序数比例尺，索引值可以是字符串或数字
 
-		//var color = d3.scale.category10();
-		var color = ["#fff","#add8e6"];
-		var defs = svg.append("defs");
+          var pie = d3.layout.pie()   //饼图布局
+            .sort(null)             //不排序，不写则会从大到小，顺时针排序。
+            .value(function (d) {
+              return d[1]
+            });     //设置value值为上面的2二维数组中的数字
+          var piedata = pie(dataset);
 
-    var filter = defs.append("filter")
-        .attr("id", "drop-shadow")
-        .attr("width", "200%")
-        .attr("height", "200%");
+          var svg = d3.select("body")             //添加一个svg并且设置宽高
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
 
-    filter.append("feGaussianBlur")
-        //  .attr("in", "SourceAlpha")
-        .attr("stdDeviation", 5)
+           // console.log(piedata[0]);
+          var arcs = svg.selectAll(".arc")
+            .data(piedata) //返回是pie(data0)
+            .enter().append("g")
+            .attr("class", "arc")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")   //将圆心平移到svg的中心
 
-        .attr("result", "blur");
-
-      // translate output of Gaussian blur to the right and downwards with 2px
-      // store result in offsetBlur
-    filter.append("feOffset")
-        .attr("in", "blur")
-        .attr("dx", 0)
-        .attr("dy", 0)
-        .attr("result", "offsetBlur");
-
-    var feMerge = filter.append("feMerge");
-
-    feMerge.append("feMergeNode")
-
-        .attr("in", "offsetBlur")
-    feMerge.append("feMergeNode")
-
-        .attr("in", "SourceGraphic");
-
-		var arcs = svg.selectAll("g")
-					  .data(pie(dataset1))
-					  .enter()
-					  .append("g")
-					  .attr("transform","translate("+outerRadius+","+outerRadius+")");
-
-		arcs.append("path")
-			.attr("fill",function (d,i) {
-          return color[i]
-      })
-      .style("filter", "url(#drop-shadow)")
-			.attr("d",function(d){
-				return arc(d);
-			})
-      .attr("transform",
-                 "translate(" + margin.left + "," + margin.top + ")");
-
-		arcs.append("text")
-			.attr("transform",function(d){
-				return "translate(" + arc.centroid(d)+ ")";
-			})
-			.attr("text-anchor","start")
-			.text(function(d){
-				return d.value;
-			});
+          .append("path")
+            .attr("id",function (d) {
+                return d.data[0]
+            })
+            .attr("fill", function (d, i) {
+              return color(i);            //根据下标填充颜色
+            })
+            .style("filter", "url(#drop-shadow)")
+            .attr("d", function (d, i) {
+              return arc(d);              ///调用上面的弧生成器
+            })
+            .on("click", changeData);
 
 
+          var text = svg.selectAll(".text")
+            .data(piedata) //返回是pie(data0)
+            .enter().append("g")
+            .attr("class", "text")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+            .append("text")
+            .style('text-anchor', "middle")
+            .style("fill","#fff")
+            .attr('transform', function (d, i) {
+              var pos = arc.centroid(d);          //将数字放在圆弧中心
+              return 'translate(' + pos + ')';
+            })
+            .text(function (d) {
+              return d.data[0];
+              return d.data[0];
+            })
 
-		console.log(dataset1);
-		console.log(pie(dataset1));
-    console.log(color)
+
+          var label = svg.selectAll('.label')      //添加右上角的标签
+            .data(piedata)
+            .enter()
+            .append('g')
+            .attr("transform", "translate(" + (width - 70) + "," + 10 + ")")
+          ;
+          label.append('rect')        //标签中的矩形
+            .style('fill', function (d, i) {
+              return color(i);
+            })
+            .attr('x', function (d, i) {
+              return 0;
+            })
+            .attr("y", function (d, i) {
+              return 10 + i * 30;
+            })
+            .attr('rx', '5')     //rx=ry 会出现圆角
+            .attr('ry', '5')
+            .attr('width', 70)
+            .attr('height', 20);
+
+          label.append('text')            //标签中的文字
+            .attr('x', function (d, i) {
+              return 35;              //因为rect宽度是50，所以把文字偏移25,在后面再将文字设置居中
+            })
+            .attr("y", function (d, i) {
+              return 15 + 10 + i * 30;
+            })
+            .text(function (d) {
+              return d.data[0];
+            })
+            .style({
+              "font-size": "10px",
+              "text-anchor": "middle",
+              'fill': "white",
+              "font-weight": 600
+            })
+
+          function changeData() {
+
+            //点击判断
+             if(this.id=="attack")
+              {
+              dataset=[["1",23],["2",52],["3",14],["4",32],["5",2]]
+             }
+            if(this.id=="information")
+              {
+                dataset=[["1",5],["2",25],["3",74],["4",25],["5",3]]
+              }
+
+            d3.selectAll(".text").remove();
+            d3.selectAll(".arc").remove();
+
+            pie2=pie(dataset)
 
 
-        </script>
+            arcs = svg.selectAll(".arc")
+              .data(pie2) //返回是pie(data0)
+              .enter().append("g")
+              .attr("class", "arc")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")   //将圆心平移到svg的中心
 
+          .append("path")
+            .attr("id",function (d) {
+                return d.data[0]
+            })
+            .attr("fill", function (d, i) {
+              return color(i);            //根据下标填充颜色
+            })
+            .style("filter", "url(#drop-shadow)")
+            .transition()
+            .delay(function (d, i) { return i * 200; })
+            .duration(200)
+            .ease("linear")
+            .attrTween('d', function (d) {
+                var i = d3.interpolate(d.startAngle, d.endAngle);
+                return function (t) {
+                    d.endAngle = i(t);
+                    return arc(d);
+                }
+            });
+
+
+          text = svg.selectAll(".text")
+            .data(pie2) //返回是pie(data0)
+            .enter().append("g")
+            .attr("class", "text")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+            .append("text")
+            .style('text-anchor', "middle")
+            .style("fill","#fff")
+            .attr('transform', function (d, i) {
+              var pos = arc.centroid(d);          //将数字放在圆弧中心
+              return 'translate(' + pos + ')';
+            })
+            .style("opacity",0)
+            .transition()
+            .duration(2000)
+            .style("opacity",1)
+            .text(function (d) {
+              return d.data[1];
+
+            })
+          }
+
+          //添加滤镜
+          var defs = svg.append("defs");
+          var filter = defs.append("filter")
+            .attr("id", "drop-shadow")
+            .attr("width", "200%")
+            .attr("height", "200%");
+
+          filter.append("feGaussianBlur")
+          //  .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 5)
+
+            .attr("result", "blur");
+
+          // translate output of Gaussian blur to the right and downwards with 2px
+          // store result in offsetBlur
+          filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 0)
+            .attr("dy", 0)
+            .attr("result", "offsetBlur");
+
+          var feMerge = filter.append("feMerge");
+
+          feMerge.append("feMergeNode")
+
+            .attr("in", "offsetBlur")
+          feMerge.append("feMergeNode")
+
+            .attr("in", "SourceGraphic");
+
+
+    </script>
     </body>
-</html>
+    </html>
